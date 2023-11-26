@@ -1,0 +1,141 @@
+/* PostDisplay.css */
+
+.post-display {
+  margin-top: 20px;
+}
+
+.post {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 20px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.post p {
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.post img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.post h2 {
+  font-size: 18px;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.post-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #888;
+  font-size: 14px;
+}
+
+.post-info span {
+  margin-right: 10px;
+}
+
+.post-info span:last-child {
+  display: flex;
+  align-items: center;
+}
+
+.post-info span:last-child svg {
+  margin-right: 5px;
+}
+
+/* Post.css */
+.post-container {
+  margin: 20px 0;
+  padding: 20px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.post-content {
+  font-size: 16px;
+}
+
+.post-image {
+  max-width: 100%;
+  margin-top: 10px;
+}
+
+.background-post {
+  padding: 20px;
+  color: #fff;
+}
+
+.post-timestamp {
+  color: #888;
+  font-size: 12px;
+}
+
+.reaction-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.reaction-btn {
+  background-color: white;
+  border: none;
+  padding: 5px 10px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.reactions-comments {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* PostDisplay.css */
+
+.reactions-comments {
+  display: flex;
+  align-items: center;
+}
+
+.comment-input {
+  flex: 1;
+  margin-right: 10px; /* Adjust margin as needed */
+}
+
+.comment-input input[type="text"] {
+  height: 45px; /* Set the height of the input field */
+  padding: 5px; /* Adjust padding as needed */
+  border: 1px solid #ccc; /* Example border */
+}
+
+.reaction-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* Adjust alignment as needed */
+  margin-right: 20px; /* Adjust margin as needed */
+}
+
+/* Ensure the button matches the height and style of reaction buttons */
+button {
+  height: 100%;
+  padding: 5px 10px;
+  border: none;
+  background-color: #f0f0f0; /* Adjust background color as needed */
+  cursor: pointer;
+}
+
+/* Style for reaction buttons */
+.reaction-btn {
+  margin-right: -10px; /* Adjust margin as needed */
+  cursor: pointer;
+}
