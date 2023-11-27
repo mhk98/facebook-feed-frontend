@@ -10,6 +10,10 @@ import {
   useEditCommentMutation,
   useGetAllCommentQuery,
 } from "../../features/comment/comment";
+import {
+  useCreateReplyMutation,
+  useGetAllReplyQuery,
+} from "../../features/reply/reply";
 
 const PostDisplay = () => {
   const [posts, setPosts] = useState([]);
@@ -17,12 +21,15 @@ const PostDisplay = () => {
   const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedComment, setEditedComment] = useState("");
+  const [replys, setReplys] = useState([]);
   const [localReactions, setLocalReactions] = useState({
     like: 0,
     love: 0,
     laugh: 0,
     angry: 0,
   });
+  const image = localStorage.getItem("image");
+  const name = localStorage.getItem("name");
 
   console.log("comments", comments);
   const [commentText, setCommentText] = useState("");
@@ -68,7 +75,7 @@ const PostDisplay = () => {
     // Example: sendCommentMutation({ postId, commentText });
     const data = {
       postPostId: id,
-      content: JSON.stringify(commentText),
+      content: commentText[id] || "",
     };
     const comment = await createComment(data);
     // Reset comment input after submission
@@ -91,9 +98,53 @@ const PostDisplay = () => {
     }
   }, [commentData, commentLoading, commentError]);
 
-  const handleReply = () => {
+  const [replyingTo, setReplyingTo] = useState(null);
+
+  const handleReply = (id) => {
     setIsReplying(true);
+    setReplyingTo(id);
   };
+
+  const [replyText, setReplyText] = useState(""); // State to handle reply text
+
+  const [createReply] = useCreateReplyMutation();
+  const handleReplyToComment = async (postId, commentId) => {
+    try {
+      // Call the function to post a reply using the replyText state
+
+      const data = {
+        postId,
+        commentId,
+        replyText,
+      };
+      await createReply(data);
+      // Additional logic after successful reply
+      setReplyText(""); // Reset reply text after posting
+    } catch (error) {
+      console.error("Error replying to comment:", error);
+    }
+  };
+
+  // Function to update reply text state
+  const handleReplyTextChange = (e) => {
+    setReplyText(e.target.value);
+  };
+
+  const {
+    data: replyData,
+    isLoading: replyLoading,
+    isError: replyError,
+  } = useGetAllReplyQuery();
+
+  useEffect(() => {
+    if (replyError) {
+      console.error("Error fetching comment data:", replyError);
+    } else if (!replyLoading) {
+      if (replyData && replyData.data) {
+        setReplys(replyData.data); // Update comments state with fetched comments
+      }
+    }
+  }, [replyData, replyLoading, replyError]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -146,6 +197,25 @@ const PostDisplay = () => {
       {posts.map((post, index) => (
         <div className="post" key={index}>
           {/* Display post content */}
+          <div
+            className=""
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              justifyContent: "left",
+            }}
+          >
+            <div className="avatar placeholder">
+              <div className=" text-neutral-content rounded-full w-12">
+                <img
+                  alt="Tailwind CSS Navbar component"
+                  src={`http://localhost:5000/${image}`}
+                />
+              </div>
+            </div>
+            <p>{name}</p>
+          </div>
           <p className="text-left">{post.content}</p>
           {post.Image && (
             <img src={`http://localhost:5000/${post.Image}`} alt="Post" />
@@ -198,12 +268,30 @@ const PostDisplay = () => {
               .filter((comment) => comment.postPostId === post.post_Id)
               .map((comment) => (
                 <div className="text-left" key={comment.id}>
-                  <p>{comment.content}</p>
+                  <div
+                    className=""
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      justifyContent: "left",
+                    }}
+                  >
+                    <div className="avatar-group -space-x-6 rtl:space-x-reverse">
+                      <div className="avatar placeholder">
+                        <div className="w-12  text-neutral-content">
+                          <img alt="" src={`http://localhost:5000/${image}`} />
+                        </div>
+                      </div>
+                    </div>
+                    <p>{comment.content}</p>
+                  </div>
+
                   {/* Buttons for reply, delete, and edit */}
                   <div className="flex gap-2">
                     <small
                       className="cursor-pointer font-semibold"
-                      onClick={handleReply}
+                      onClick={() => handleReply(comment.id)}
                     >
                       Reply
                     </small>
@@ -225,12 +313,53 @@ const PostDisplay = () => {
                     </small>
                   </div>
                   {/* Input field for reply */}
-                  {isReplying && (
+                  {isReplying && replyingTo === comment.id && (
                     <div>
-                      <input type="text" placeholder="Write a reply..." />
-                      <button className="mb-2">Post Reply</button>
+                      <input
+                        type="text"
+                        placeholder="Write a reply..."
+                        value={replyText}
+                        onChange={handleReplyTextChange}
+                      />
+                      <button
+                        onClick={() =>
+                          handleReplyToComment(comment.postPostId, comment.id)
+                        }
+                      >
+                        Post Reply
+                      </button>
                     </div>
                   )}
+
+                  {/* Display replies for this comment */}
+                  {replys &&
+                    replys
+                      .filter((reply) => reply.commentId === comment.id)
+                      .map((reply) => (
+                        <div className="ms-4" key={reply.id}>
+                          <div
+                            className=""
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              justifyContent: "left",
+                            }}
+                          >
+                            <div className="avatar-group -space-x-6 rtl:space-x-reverse">
+                              <div className="avatar placeholder">
+                                <div className="w-12  text-neutral-content">
+                                  <img
+                                    alt=""
+                                    src={`http://localhost:5000/${image}`}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <p>{reply.content}</p>
+                          </div>
+                        </div>
+                      ))}
                   {/* Input field for editing */}
                   {isEditing && (
                     <div>
