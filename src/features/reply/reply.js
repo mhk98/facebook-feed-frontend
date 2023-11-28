@@ -19,17 +19,20 @@ export const replyApi = createApi({
     }),
 
     deleteReply: build.mutation({
-      query: (id) => ({
-        url: `/reply/${id}`,
+      query: ({ postId, commentId, replyId }) => ({
+        url: `/reply/${postId}/${commentId}/${replyId}`,
         method: "DELETE",
       }),
       invalidatesTags: ["replies"],
     }),
     editReply: build.mutation({
-      query: ({ id, data }) => ({
-        url: `/reply/${id}`,
+      query: ({ content, postId, commentId, replyId }) => ({
+        url: `/reply/${postId}/${commentId}/${replyId}`,
         method: "PUT",
-        body: data,
+        body: JSON.stringify({ content }),
+      headers: {
+        "Content-Type": "application/json",
+      },
       }),
       invalidatesTags: ["replies"],
     }),

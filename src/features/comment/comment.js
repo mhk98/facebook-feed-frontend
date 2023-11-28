@@ -29,7 +29,10 @@ export const commentApi = createApi({
       query: ({ content, postId, commentId }) => ({
         url: `/comment/${postId}/${commentId}`,
         method: "PUT",
-        body: {content},
+        body: JSON.stringify({ content }),
+        headers: {
+          "Content-Type": "application/json",
+        },
       }),
       invalidatesTags: ["comments"],
     }),

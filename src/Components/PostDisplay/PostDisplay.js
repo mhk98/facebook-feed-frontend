@@ -12,6 +12,8 @@ import {
 } from "../../features/comment/comment";
 import {
   useCreateReplyMutation,
+  useDeleteReplyMutation,
+  useEditReplyMutation,
   useGetAllReplyQuery,
 } from "../../features/reply/reply";
 
@@ -20,6 +22,7 @@ const PostDisplay = () => {
   const [comments, setComments] = useState([]);
   const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [commentEditId, setCommentEditId] = useState()
   const [editedComment, setEditedComment] = useState("");
   const [replys, setReplys] = useState([]);
   const [localReactions, setLocalReactions] = useState({
@@ -146,13 +149,45 @@ const PostDisplay = () => {
     }
   }, [replyData, replyLoading, replyError]);
 
-  const handleEdit = () => {
+  const handleEdit = (commentId) => {
     setIsEditing(true);
+    setCommentEditId(commentId)
     // Fetch the comment content or set the content to be edited in the state
     // For instance, if 'comments' is an object with post IDs as keys and arrays of comments as values:
     // const editedContent = comments[post.post_Id][commentIndex].content;
     // setEditedComment(editedContent);
   };
+
+
+  const [editReplyText, setEditReplyText] = useState('')
+
+  // Function to update reply text state
+  const handleEditReplyTextChange = (e) => {
+    setEditReplyText(e.target.value);
+  };
+
+
+  const [editComment] = useEditCommentMutation();
+  const handleEditedCommentSubmit = async (postId, commentId) => {
+    try {
+      console.log(
+        `Edited comment with ID ${commentId} from post ID ${postId} with this ${editedComment}`
+      );
+      // Call the mutation to delete the comment on the server
+      await editComment({ content: editReplyText, postId, commentId });
+
+      // Log success or perform any other actions after successful deletion
+    } catch (error) {
+      // Handle error if the mutation fails
+      console.error("Error deleting comment:", error);
+    }
+    // Reset state variables after editing
+    setIsEditing(false);
+    setEditedComment("");
+    // Update state or refetch comments after editing
+  };
+
+
 
   const [deleteComment] = useDeleteCommentMutation();
   const handleDelete = async (postId, commentId) => {
@@ -170,24 +205,53 @@ const PostDisplay = () => {
     }
   };
 
-  const [editComment] = useEditCommentMutation();
-  const handleEditedCommentSubmit = async (postId, commentId) => {
-    try {
-      console.log(
-        `Edited comment with ID ${commentId} from post ID ${postId} with this ${editedComment}`
-      );
-      // Call the mutation to delete the comment on the server
-      await editComment({ content: editedComment, postId, commentId });
 
-      // Log success or perform any other actions after successful deletion
+  const [editedReply, setEditedReply] = useState(""); // State to handle edited reply text
+  const [isReplyEditing, setIsReplyEditing] = useState(false); // State to handle reply editing
+  const [replyBeingEdited, setReplyBeingEdited] = useState(null); // State to track which reply is being edited
+
+  const handleEditReply = (replyId) => {
+    setIsReplyEditing(true);
+    setReplyBeingEdited(replyId);
+  };
+
+  const handleEditedReplyTextChange = (e) => {
+    setEditedReply(e.target.value);
+  };
+
+  const [editReply] = useEditReplyMutation();
+  const handleEditedReplySubmit = async (
+    postId,
+    commentId,
+    replyId,
+    editedReply
+  ) => {
+    try {
+      const res = await editReply({
+        content: editedReply,
+        postId,
+        commentId,
+        replyId,
+      });
+      // Additional logic after successful reply edit
+
+      console.log("editedReply", editedReply);
+      setIsReplyEditing(false); // Reset editing state
+      setEditedReply(""); // Reset edited reply text
+      // Update state or refetch replies after editing
     } catch (error) {
-      // Handle error if the mutation fails
-      console.error("Error deleting comment:", error);
+      console.error("Error editing reply:", error);
     }
-    // Reset state variables after editing
-    setIsEditing(false);
-    setEditedComment("");
-    // Update state or refetch comments after editing
+  };
+
+  const [deleteReply] = useDeleteReplyMutation();
+  const handleDeleteReply = async (postId, commentId, replyId) => {
+    try {
+      await deleteReply({ postId, commentId, replyId });
+      // Additional logic after successful reply deletion
+    } catch (error) {
+      console.error("Error deleting reply:", error);
+    }
   };
 
   return (
@@ -298,7 +362,7 @@ const PostDisplay = () => {
                     <small
                       className="cursor-pointer font-semibold"
                       onClick={() =>
-                        handleEdit(comment.post_Id, comment.comment_Id)
+                        handleEdit(comment.id)
                       }
                     >
                       Edit
@@ -331,6 +395,27 @@ const PostDisplay = () => {
                     </div>
                   )}
 
+                  {isEditing && commentEditId === comment.id && (
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Write edit reply..."
+                        value={editReplyText}
+                        onChange={handleEditReplyTextChange}
+                      />
+                      <button
+                        onClick={() =>
+                          handleEditedCommentSubmit(
+                            comment.postPostId,
+                            comment.id
+                          )
+                        }
+                      >
+                        Update Reply
+                      </button>
+                    </div>
+                  )}
+
                   {/* Display replies for this comment */}
                   {replys &&
                     replys
@@ -358,29 +443,54 @@ const PostDisplay = () => {
                             </div>
                             <p>{reply.content}</p>
                           </div>
+
+                          {/* Buttons for reply, delete, and edit */}
+                          <div className="flex gap-2">
+                            <small
+                              className="cursor-pointer font-semibold"
+                              onClick={() => handleEditReply(reply.id)}
+                            >
+                              Edit
+                            </small>
+                            <small
+                              className="cursor-pointer font-semibold"
+                              onClick={() =>
+                                handleDeleteReply(
+                                  reply.postPostId,
+                                  reply.commentId,
+                                  reply.id
+                                )
+                              }
+                            >
+                              Delete
+                            </small>
+                          </div>
+
+                          {/* Input field for reply */}
+                          {isReplyEditing && replyBeingEdited === reply.id && (
+                            <div>
+                              <input
+                                type="text"
+                                placeholder="Write edit reply..."
+                                value={editedReply}
+                                onChange={(e) => handleEditedReplyTextChange(e)}
+                              />
+                              <button
+                                onClick={() =>
+                                  handleEditedReplySubmit(
+                                    reply.postPostId,
+                                    reply.commentId,
+                                    reply.id,
+                                    editedReply
+                                  )
+                                }
+                              >
+                                Update Reply
+                              </button>
+                            </div>
+                          )}
                         </div>
                       ))}
-                  {/* Input field for editing */}
-                  {isEditing && (
-                    <div>
-                      <input
-                        type="text"
-                        placeholder="Edit your comment..."
-                        value={editedComment}
-                        onChange={(e) => setEditedComment(e.target.value)}
-                      />
-                      <button
-                        onClick={() =>
-                          handleEditedCommentSubmit(
-                            comment.postPostId,
-                            comment.id
-                          )
-                        }
-                      >
-                        Save
-                      </button>
-                    </div>
-                  )}
                 </div>
               ))}
         </div>
