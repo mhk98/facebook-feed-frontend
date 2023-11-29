@@ -25,13 +25,13 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/v1/user/login",
+        "https://facebook-feed.onrender.com/api/v1/user/login",
         formData
       );
 
       if (response.data.status === "Success") {
         navigate("/");
-        toast.success('Successfully Logged In');
+        toast.success("Successfully Logged In");
         localStorage.setItem("token", response.data.data.accessToken);
         localStorage.setItem("name", response.data.data.user.Name);
         localStorage.setItem("image", response.data.data.user.Image);

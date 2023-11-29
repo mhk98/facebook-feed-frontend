@@ -24,7 +24,7 @@ const Header = () => {
           <div className="w-10 rounded-full">
             <img
               alt="Tailwind CSS Navbar component"
-              src={`http://localhost:5000/${image}`}
+              src={`https://facebook-feed.onrender.com/${image}`}
             />
           </div>
         </div>

@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const postApi = createApi({
   reducerPath: "postApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api/v1/",
+    baseUrl: "https://facebook-feed.onrender.com/api/v1/",
     // baseUrl: "https://createabit-backend.onrender.com/api/v1/",
   }),
 
@@ -23,16 +23,15 @@ export const postApi = createApi({
         url: `/post/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["post"],
+      invalidatesTags: ["posts"],
     }),
-    editPost: build.mutation({
-      query: ({id, data}) => ({
+    editPostData: build.mutation({
+      query: ({ id, data }) => ({
         url: `/post/${id}`,
         method: "PUT",
         body: data,
-
       }),
-      invalidatesTags: ["post"],
+      invalidatesTags: ["posts"],
     }),
 
     getAllPost: build.query({
@@ -51,5 +50,5 @@ export const {
   useCreatePostMutation,
   useGetAllPostQuery,
   useDeletePostMutation,
-  useEditPostMutation,
+  useEditPostDataMutation,
 } = postApi;

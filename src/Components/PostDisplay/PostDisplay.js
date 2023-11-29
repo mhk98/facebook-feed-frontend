@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./PostDisplay.css"; // Your CSS file for styling
 import {
+  useDeletePostMutation,
+  useEditPostDataMutation,
   useEditPostMutation,
   useGetAllPostQuery,
 } from "../../features/post/post";
@@ -16,13 +18,15 @@ import {
   useEditReplyMutation,
   useGetAllReplyQuery,
 } from "../../features/reply/reply";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 
 const PostDisplay = () => {
   const [posts, setPosts] = useState([]);
   const [comments, setComments] = useState([]);
   const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [commentEditId, setCommentEditId] = useState()
+  const [commentEditId, setCommentEditId] = useState();
   const [editedComment, setEditedComment] = useState("");
   const [replys, setReplys] = useState([]);
   const [localReactions, setLocalReactions] = useState({
@@ -31,6 +35,39 @@ const PostDisplay = () => {
     laugh: 0,
     angry: 0,
   });
+
+  const [postEditText, setPostEditText] = useState("");
+
+  const [editImage, setEditImage] = useState(null);
+
+  const handleEditTextChange = (e) => {
+    setPostEditText(e.target.value);
+  };
+
+  const handleImageChange = (e) => {
+    const selectedImage = e.target.files[0];
+    setEditImage(selectedImage);
+  };
+
+  const [editPostData] = useEditPostDataMutation();
+  const handleSubmit = (postId, postEditText, editImage) => {
+    const formData = new FormData();
+    formData.append("content", postEditText);
+    if (editImage) {
+      formData.append("Image", editImage);
+    }
+    console.log("formData", formData);
+
+    editPostData({ id: postId, data: formData });
+  };
+
+  const [deletePost] = useDeletePostMutation();
+
+  const handleDeletePost = async (id) => {
+    console.log("DeletePostId", id);
+    const res = await deletePost(id);
+  };
+
   const image = localStorage.getItem("image");
   const name = localStorage.getItem("name");
 
@@ -53,12 +90,12 @@ const PostDisplay = () => {
     }
   }, [data, isLoading, isError, error]);
 
-  const [editPost] = useEditPostMutation();
+  // const [editPost] = useEditPostMutation();
 
   const handleLocalReaction = async (postId, reactionType) => {
     try {
       // Call the mutation to update the post on the server
-      await editPost({ id: postId, data: reactionType });
+      // await editPost({ id: postId, data: reactionType });
 
       // Update local reactions
       setLocalReactions((prevReactions) => ({
@@ -151,21 +188,19 @@ const PostDisplay = () => {
 
   const handleEdit = (commentId) => {
     setIsEditing(true);
-    setCommentEditId(commentId)
+    setCommentEditId(commentId);
     // Fetch the comment content or set the content to be edited in the state
     // For instance, if 'comments' is an object with post IDs as keys and arrays of comments as values:
     // const editedContent = comments[post.post_Id][commentIndex].content;
     // setEditedComment(editedContent);
   };
 
-
-  const [editReplyText, setEditReplyText] = useState('')
+  const [editReplyText, setEditReplyText] = useState("");
 
   // Function to update reply text state
   const handleEditReplyTextChange = (e) => {
     setEditReplyText(e.target.value);
   };
-
 
   const [editComment] = useEditCommentMutation();
   const handleEditedCommentSubmit = async (postId, commentId) => {
@@ -187,8 +222,6 @@ const PostDisplay = () => {
     // Update state or refetch comments after editing
   };
 
-
-
   const [deleteComment] = useDeleteCommentMutation();
   const handleDelete = async (postId, commentId) => {
     try {
@@ -204,7 +237,6 @@ const PostDisplay = () => {
       console.error("Error deleting comment:", error);
     }
   };
-
 
   const [editedReply, setEditedReply] = useState(""); // State to handle edited reply text
   const [isReplyEditing, setIsReplyEditing] = useState(false); // State to handle reply editing
@@ -262,27 +294,115 @@ const PostDisplay = () => {
         <div className="post" key={index}>
           {/* Display post content */}
           <div
-            className=""
             style={{
               display: "flex",
               alignItems: "center",
               gap: "6px",
-              justifyContent: "left",
+              justifyContent: "space-between",
             }}
           >
-            <div className="avatar placeholder">
-              <div className=" text-neutral-content rounded-full w-12">
-                <img
-                  alt="Tailwind CSS Navbar component"
-                  src={`http://localhost:5000/${image}`}
-                />
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                justifyContent: "left",
+              }}
+            >
+              <div className="avatar placeholder">
+                <div className=" text-neutral-content rounded-full w-12">
+                  <img
+                    alt="Tailwind CSS Navbar component"
+                    src={`https://facebook-feed.onrender.com/${image}`}
+                  />
+                </div>
               </div>
+              <p>{name}</p>
             </div>
-            <p>{name}</p>
+
+            <div className="dropdown dropdown-bottom">
+              <div tabIndex={0} role="button" className="btn m-1">
+                <FontAwesomeIcon icon={faEllipsis} />
+              </div>
+              <ul
+                className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-20 "
+                style={{ margin: "auto" }}
+              >
+                <li>
+                  {/* Open the modal using document.getElementById('ID').showModal() method */}
+                  <button
+                    style={{
+                      backgroundColor: "white",
+                      color: "black",
+                    }}
+                    className=""
+                    onClick={() =>
+                      document.getElementById("my_modal_1").showModal()
+                    }
+                  >
+                    Edit
+                  </button>
+
+                  <dialog id="my_modal_1" className="modal">
+                    <div className="modal-box">
+                      <>
+                        <textarea
+                          placeholder="Write something..."
+                          value={postEditText}
+                          onChange={(e) => handleEditTextChange(e)}
+                        />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                        />
+                      </>
+                      <div
+                        className="modal-action"
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <button
+                          onClick={() =>
+                            handleSubmit(post.post_Id, postEditText, editImage)
+                          }
+                          type="submit"
+                        >
+                          submit
+                        </button>
+
+                        <form method="dialog">
+                          {/* if there is a button in form, it will close the modal */}
+
+                          <button className="btn">Close</button>
+                        </form>
+                      </div>
+                    </div>
+                  </dialog>
+                </li>
+                <li>
+                  <button
+                    style={{
+                      backgroundColor: "white",
+                      color: "black",
+                    }}
+                    onClick={() => handleDeletePost(post.post_Id)}
+                  >
+                    Delete
+                  </button>
+                </li>
+              </ul>
+            </div>
           </div>
+
           <p className="text-left">{post.content}</p>
           {post.Image && (
-            <img src={`http://localhost:5000/${post.Image}`} alt="Post" />
+            <img
+              src={`https://facebook-feed.onrender.com/${post.Image}`}
+              alt="Post"
+            />
           )}
 
           <div className="reactions-comments">
@@ -294,6 +414,24 @@ const PostDisplay = () => {
                 value={commentText[post.post_Id] || ""}
                 onChange={(e) => handleCommentChange(post.post_Id, e)}
               />
+
+              <div className="flex gap-2">
+                <div>
+                  {comments.length > 1 ? (
+                    <small>{comments.length} Comments</small>
+                  ) : (
+                    <small>{comments.length} Comment</small>
+                  )}
+                </div>
+
+                <div>
+                  {replys.length > 1 ? (
+                    <small>{replys.length} Replys</small>
+                  ) : (
+                    <small>{replys.length} Reply</small>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="reaction-container">
@@ -344,7 +482,10 @@ const PostDisplay = () => {
                     <div className="avatar-group -space-x-6 rtl:space-x-reverse">
                       <div className="avatar placeholder">
                         <div className="w-12  text-neutral-content">
-                          <img alt="" src={`http://localhost:5000/${image}`} />
+                          <img
+                            alt=""
+                            src={`https://facebook-feed.onrender.com/${image}`}
+                          />
                         </div>
                       </div>
                     </div>
@@ -361,9 +502,7 @@ const PostDisplay = () => {
                     </small>
                     <small
                       className="cursor-pointer font-semibold"
-                      onClick={() =>
-                        handleEdit(comment.id)
-                      }
+                      onClick={() => handleEdit(comment.id)}
                     >
                       Edit
                     </small>
@@ -385,6 +524,7 @@ const PostDisplay = () => {
                         value={replyText}
                         onChange={handleReplyTextChange}
                       />
+
                       <button
                         onClick={() =>
                           handleReplyToComment(comment.postPostId, comment.id)
@@ -436,7 +576,7 @@ const PostDisplay = () => {
                                 <div className="w-12  text-neutral-content">
                                   <img
                                     alt=""
-                                    src={`http://localhost:5000/${image}`}
+                                    src={`https://facebook-feed.onrender.com/${image}`}
                                   />
                                 </div>
                               </div>

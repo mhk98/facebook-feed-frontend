@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const replyApi = createApi({
   reducerPath: "replyApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api/v1/",
+    baseUrl: "https://facebook-feed.onrender.com/api/v1/",
     // baseUrl: "https://createabit-backend.onrender.com/api/v1/",
   }),
 
@@ -30,9 +30,9 @@ export const replyApi = createApi({
         url: `/reply/${postId}/${commentId}/${replyId}`,
         method: "PUT",
         body: JSON.stringify({ content }),
-      headers: {
-        "Content-Type": "application/json",
-      },
+        headers: {
+          "Content-Type": "application/json",
+        },
       }),
       invalidatesTags: ["replies"],
     }),
